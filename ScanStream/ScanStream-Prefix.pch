@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'ScanStream' target in the 'ScanStream' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
