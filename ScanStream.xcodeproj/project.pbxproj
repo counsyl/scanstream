@@ -13,13 +13,14 @@
 		16E6F1BB1767E21900A6E493 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 16E6F1B91767E21900A6E493 /* Credits.rtf */; };
 		16E6F1BE1767E21900A6E493 /* SSAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 16E6F1BD1767E21900A6E493 /* SSAppDelegate.m */; };
 		16E6F1C11767E21900A6E493 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16E6F1BF1767E21900A6E493 /* MainMenu.xib */; };
+		16E6F1C81767E50000A6E493 /* ImageCaptureCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16E6F1C71767E50000A6E493 /* ImageCaptureCore.framework */; };
+		16E6F1CA1767E71300A6E493 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16E6F1C91767E71300A6E493 /* Quartz.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		16E6F1A71767E21900A6E493 /* ScanStream.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScanStream.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		16E6F1AA1767E21900A6E493 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		16E6F1AD1767E21900A6E493 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		16E6F1AE1767E21900A6E493 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		16E6F1AF1767E21900A6E493 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		16E6F1B21767E21900A6E493 /* ScanStream-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ScanStream-Info.plist"; sourceTree = "<group>"; };
 		16E6F1B41767E21900A6E493 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -29,6 +30,8 @@
 		16E6F1BC1767E21900A6E493 /* SSAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SSAppDelegate.h; sourceTree = "<group>"; };
 		16E6F1BD1767E21900A6E493 /* SSAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SSAppDelegate.m; sourceTree = "<group>"; };
 		16E6F1C01767E21900A6E493 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		16E6F1C71767E50000A6E493 /* ImageCaptureCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageCaptureCore.framework; path = System/Library/Frameworks/ImageCaptureCore.framework; sourceTree = SDKROOT; };
+		16E6F1C91767E71300A6E493 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +39,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				16E6F1CA1767E71300A6E493 /* Quartz.framework in Frameworks */,
+				16E6F1C81767E50000A6E493 /* ImageCaptureCore.framework in Frameworks */,
 				16E6F1AB1767E21900A6E493 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -47,6 +52,7 @@
 			isa = PBXGroup;
 			children = (
 				16E6F1B01767E21900A6E493 /* ScanStream */,
+				16E6F1CB1767F52500A6E493 /* Third-Party */,
 				16E6F1A91767E21900A6E493 /* Frameworks */,
 				16E6F1A81767E21900A6E493 /* Products */,
 			);
@@ -63,20 +69,13 @@
 		16E6F1A91767E21900A6E493 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				16E6F1AD1767E21900A6E493 /* AppKit.framework */,
 				16E6F1AA1767E21900A6E493 /* Cocoa.framework */,
-				16E6F1AC1767E21900A6E493 /* Other Frameworks */,
+				16E6F1AF1767E21900A6E493 /* Foundation.framework */,
+				16E6F1C71767E50000A6E493 /* ImageCaptureCore.framework */,
+				16E6F1C91767E71300A6E493 /* Quartz.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		16E6F1AC1767E21900A6E493 /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				16E6F1AD1767E21900A6E493 /* AppKit.framework */,
-				16E6F1AE1767E21900A6E493 /* CoreData.framework */,
-				16E6F1AF1767E21900A6E493 /* Foundation.framework */,
-			);
-			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
 		16E6F1B01767E21900A6E493 /* ScanStream */ = {
@@ -100,6 +99,14 @@
 				16E6F1B91767E21900A6E493 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		16E6F1CB1767F52500A6E493 /* Third-Party */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Third-Party";
+			path = ScanStream;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -138,6 +145,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				English,
 			);
 			mainGroup = 16E6F19E1767E21900A6E493;
 			productRefGroup = 16E6F1A81767E21900A6E493 /* Products */;
@@ -304,6 +312,7 @@
 				16E6F1C61767E21900A6E493 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
