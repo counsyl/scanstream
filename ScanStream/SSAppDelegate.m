@@ -7,14 +7,16 @@
 //
 
 #import "SSAppDelegate.h"
+#import "RoutingHTTPServer.h"
+#import "SSScanManager.h"
 
 
-@interface SSAppDelegate () <IKDeviceBrowserViewDelegate, ICScannerDeviceDelegate>
+@interface SSAppDelegate () <IKDeviceBrowserViewDelegate>
 @end
 
 
 @implementation SSAppDelegate {
-    ICScannerDevice *_scanner;
+    RoutingHTTPServer *_httpServer;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -23,104 +25,95 @@
     
     [_topSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
                     forSubviewAtIndex:0];
+    [_mainSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
+                     forSubviewAtIndex:0];
+        
+    _httpServer = [RoutingHTTPServer new];
+    _httpServer.port = 8080;//49152 + arc4random_uniform(65535 - 49152 + 1);
+    
+    [_httpServer get:@"/scan"
+           withBlock:^(RouteRequest *request, RouteResponse *response) {
+               dispatch_async(dispatch_get_main_queue(), ^{
+                   SSLog(@"Got request: %@", request);
+               });
+               
+               NSString *host = [[NSURL URLWithString:[request header:@"Origin"]] host];
+               if ([host isEqualToString:@"localhost"]) {
+                   [response setHeader:@"Access-Control-Allow-Origin"
+                                 value:[request header:@"Origin"]];
+               }
+               
+               if (!_scanManager.readyToScan) {
+                   response.statusCode = 503;
+                   [response respondWithString:@"Scanner is not ready"];
+                   return;
+               }
+               
+               // Scan documents.
+               [_scanManager scanSync:^(BOOL success, NSError *error, NSArray *scannedURLs) {
+                   if (!success) {
+                       response.statusCode = 500;
+                       [response respondWithString:error.localizedDescription];
+                       return;
+                   }
+                   
+                   [response respondWithFile:[scannedURLs[0] path]];
+                   
+                   // Delete scanned files.
+                   for (NSURL *fileURL in scannedURLs) {
+                       NSError *error = nil;
+                       if (![[NSFileManager defaultManager] removeItemAtURL:fileURL
+                                                                      error:&error]) {
+                           dispatch_async(dispatch_get_main_queue(), ^{
+                               SSLog(@"Error deleting scanned file: %@", error);
+                           });
+                       }
+                   }
+               }];
+           }];
+    
+    NSError *__autoreleasing error = nil;
+    if (![_httpServer start:&error]) {
+        SSLog(@"Error starting server: %@", error);
+    }
 }
 
+-  (BOOL)splitView:(NSSplitView *)splitView
+canCollapseSubview:(NSView *)subview
+{
+    return [_logTextView isDescendantOf:subview];
+}
+-              (BOOL)splitView:(NSSplitView *)splitView
+         shouldCollapseSubview:(NSView *)subview
+forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
+{
+    return [_logTextView isDescendantOf:subview];
+}
 
 #pragma mark
 #pragma mark Browser view delegate methods
 
-- (void)deviceBrowserView: (IKDeviceBrowserView *)deviceBrowserView selectionDidChange:(ICDevice *)device
+- (void)deviceBrowserView:(IKDeviceBrowserView *)deviceBrowserView selectionDidChange:(ICDevice *)device
 {
-    [self log:@"Browser selected device “%@”", device.name];
+    SSLog(@"Browser selected device “%@”", device.name);
     
-    [_scanner cancelScan];
-    [_scanner requestCloseSession];
+    if (!device) return;
     
-    // Configure the scanner for scanning
-    _scanner = (ICScannerDevice *)device;
-    _scanner.transferMode = ICScannerTransferModeFileBased;
-    _scanner.documentUTI = (__bridge NSString *)kUTTypePDF;
-//    _scanner.downloadsDirectory = [self _tempDownloadDirectory];
-    _scanner.delegate = self;
-    [_scanner requestOpenSession];
-}
-
-
-#pragma mark
-#pragma mark Device delegate methods
-
-- (void)didRemoveDevice:(ICDevice *)device
-{
-    [self log:@"Device removed!"];
-}
-
-- (void)device:(ICDevice*)device didEncounterError:(NSError*)error
-{
-    [self log:@"Device encountered error: %@", error];
-}
-
-- (void)device:(ICDevice *)device didOpenSessionWithError:(NSError *)error
-{
-    if (error) {
-        [self log:@"Error opening session: %@", error];
+    if (!(device.type & ICDeviceTypeMaskScanner && [device isKindOfClass:[ICScannerDevice class]])) {
+        SSLog(@"Unexpected device type! %@", device);
         return;
     }
     
-    [self log:@"Opened session."];
-    [_scanner requestSelectFunctionalUnit:ICScannerFunctionalUnitTypeDocumentFeeder];
+    _scanManager.scanner = (ICScannerDevice *)device;
 }
 
-- (void)scannerDevice:(ICScannerDevice*)scanner didSelectFunctionalUnit:(ICScannerFunctionalUnit*)functionalUnit error:(NSError*)error
-{
-    [self log:@"Selected functional unit: %@", functionalUnit];
-    if ([functionalUnit isKindOfClass:[ICScannerFunctionalUnitDocumentFeeder class]]) {
-        ICScannerFunctionalUnitDocumentFeeder *feeder = (ICScannerFunctionalUnitDocumentFeeder *)functionalUnit;
-//        feeder.bitDepth = 1;
-        feeder.pixelDataType = ICScannerPixelDataTypeBW;
-        feeder.duplexScanningEnabled = YES;
-        [feeder addObserver:self
-                 forKeyPath:@"scanProgressPercentDone"
-                    options:NSKeyValueObservingOptionInitial
-                    context:(__bridge_retained void *)feeder];
-    }
-}
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context
-{
-    [self log:@"Progress: %f", ((__bridge ICScannerFunctionalUnitDocumentFeeder *)context).scanProgressPercentDone];
-}
 
 - (IBAction)startScan:(id)sender
 {
-    [_scanner requestScan];
+    [_scanManager scan:^(BOOL success, NSError *error, NSArray *scannedURLs) {
+        NSLog(@"Scanned: %d, %@, %@", success, error, scannedURLs);
+    }];
 }
-
-- (void)deviceDidBecomeReady:(ICDevice *)device
-{
-    [self log:@"Ready to scan!"];
-    //    [(ICScannerDevice *)device requestSelectFunctionalUnit:ICScannerFunctionalUnitTypeDocumentFeeder];
-}
-- (void)device:(ICDevice *)device didReceiveCustomNotification:(NSDictionary *)notification data:(NSData *)data
-{
-    [self log:@"Notification: %@ - %@", notification, data];
-}
-- (void)device:(ICDevice *)device didReceiveButtonPress:(NSString*)buttonType
-{
-    [self log:@"Button pressed: %@", buttonType];
-}
-- (void)scannerDeviceDidBecomeAvailable:(ICScannerDevice*)scanner
-{
-    [self log:@"Scanner available"];
-}
-
-- (void)scannerDevice:(ICScannerDevice *)scanner didScanToURL:(NSURL*)url
-{
-    [self log:@"Scanned to %@", url];
-    [[NSWorkspace sharedWorkspace] selectFile:[url path] inFileViewerRootedAtPath:nil];
-}
-
 
 
 #pragma mark

@@ -4,4 +4,7 @@
 
 #ifdef __OBJC__
     #import <Cocoa/Cocoa.h>
+
+    #import "SSAppDelegate.h"
+    #define SSLog(...) [(SSAppDelegate *)[NSApp delegate] log:__VA_ARGS__]
 #endif

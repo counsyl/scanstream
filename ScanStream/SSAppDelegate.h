@@ -10,11 +10,18 @@
 #import <Quartz/Quartz.h>
 
 
-@interface SSAppDelegate : NSObject <NSApplicationDelegate>
+@class SSScanManager;
+
+
+@interface SSAppDelegate : NSObject <NSApplicationDelegate, NSSplitViewDelegate>
 
 @property (assign) IBOutlet NSWindow *window;
 @property (weak) IBOutlet IKDeviceBrowserView *deviceBrowserView;
 @property (unsafe_unretained) IBOutlet NSTextView *logTextView;
 @property (weak) IBOutlet NSSplitView *topSplitView;
+@property (weak) IBOutlet NSSplitView *mainSplitView;
+@property (strong) IBOutlet SSScanManager *scanManager;
+
+- (void)log:(NSString *)format, ... NS_FORMAT_FUNCTION(1,2);
 
 @end
