@@ -91,14 +91,17 @@ enum {
     [_httpServer get:@"/download/:code" withBlock:^(RouteRequest *request, RouteResponse *response) {
         [self _allowForRequest:request response:response];
         
-        SSLog(@"Files: %@", _temporaryURLs);
-        SSLog(@"Asking for %@", [request param:@"code"]);
+        NSString *code = [request param:@"code"];
         
-        NSURL *fileURL = _temporaryURLs[[request param:@"code"]];
+        SSLog(@"Got request for file %@", code);
+        
+        NSURL *fileURL = _temporaryURLs[code];
         if (!fileURL) {
             response.statusCode = 404;
             return;
         }
+        
+        [_temporaryURLs removeObjectForKey:code];
         
         // -respondWithFile: doesn't work because we want to delete the file immediately.
         NSError *error = nil;
