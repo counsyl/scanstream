@@ -58,16 +58,19 @@ NSString *const SSScanManagerErrorDomain = @"SSScanManagerErrorDomain";
     
     [_scanner requestScan];
     self.scanInProgress = YES;
+    [NSApp dockTile].badgeLabel = @"⋯";
 }
 
 - (void)scanSync:(SSScanManagerCallback)callback
 {
     dispatch_semaphore_t sem = dispatch_semaphore_create(0);
     
-    [self scan:^(BOOL success, NSError *error, NSArray *scannedURLs) {
-        callback(success, error, scannedURLs);
-        dispatch_semaphore_signal(sem);
-    }];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self scan:^(BOOL success, NSError *error, NSArray *scannedURLs) {
+            callback(success, error, scannedURLs);
+            dispatch_semaphore_signal(sem);
+        }];
+    });
     
     dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
 }
@@ -86,9 +89,11 @@ NSString *const SSScanManagerErrorDomain = @"SSScanManagerErrorDomain";
     
     if (error) {
         _callbackBlock(NO, error, nil);
+        [NSApp dockTile].badgeLabel = @"✘";
     }
     else {
         _callbackBlock(YES, nil, _scannedURLs);
+        [NSApp dockTile].badgeLabel = @"✔";
     }
     
     _callbackBlock = nil;
@@ -104,10 +109,13 @@ NSString *const SSScanManagerErrorDomain = @"SSScanManagerErrorDomain";
     
     self.readyToScan = NO;
     self.scanInProgress = NO;
+    [NSApp dockTile].badgeLabel = (scanner ? @"⋯" : nil);
+    [NSApp setApplicationIconImage:
+     [[NSImage alloc] initWithCGImage:scanner.icon size:NSZeroSize]];
     
     _scanner = scanner;
     _scanner.transferMode = ICScannerTransferModeFileBased;
-    _scanner.documentUTI = (__bridge NSString *)kUTTypeJPEG;
+//    _scanner.documentUTI = (__bridge NSString *)kUTTypeJPEG;
 //    _scanner.downloadsDirectory = [self _tempDownloadDirectory];
     _scanner.delegate = self;
     [_scanner requestOpenSession];
@@ -132,12 +140,13 @@ NSString *const SSScanManagerErrorDomain = @"SSScanManagerErrorDomain";
     if (error) {
         // Probably some other application is using the scanner.
         SSLog(@"Error opening session: %@", error);
+        [NSApp dockTile].badgeLabel = @"✘";
         return;
     }
     
-    SSLog(@"Opened session, requesting flatbed");
+    SSLog(@"Opened session");
     
-    [_scanner requestSelectFunctionalUnit:ICScannerFunctionalUnitTypeFlatbed];
+    [_scanner requestSelectFunctionalUnit:ICScannerFunctionalUnitTypeDocumentFeeder];
 }
 
 -   (void)scannerDevice:(ICScannerDevice *)scanner
@@ -181,6 +190,7 @@ didSelectFunctionalUnit:(ICScannerFunctionalUnit *)functionalUnit
 - (void)deviceDidBecomeReady:(ICDevice *)device
 {
     SSLog(@"Ready to scan!");
+    [NSApp dockTile].badgeLabel = @"✔";
     
     self.readyToScan = YES;
 }
@@ -206,6 +216,7 @@ didSelectFunctionalUnit:(ICScannerFunctionalUnit *)functionalUnit
 - (void)device:(ICDevice *)device didEncounterError:(NSError*)error
 {
     SSLog(@"Device encountered error: %@", error);
+    [NSApp dockTile].badgeLabel = @"✘";
 }
 
 - (void)dealloc

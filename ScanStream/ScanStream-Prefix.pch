@@ -6,5 +6,5 @@
     #import <Cocoa/Cocoa.h>
 
     #import "SSAppDelegate.h"
-    #define SSLog(...) [(SSAppDelegate *)[NSApp delegate] log:__VA_ARGS__]
+    #define SSLog(...) dispatch_async(dispatch_get_main_queue(), ^{ [(SSAppDelegate *)[NSApp delegate] log:__VA_ARGS__]; })
 #endif
