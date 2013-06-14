@@ -25,26 +25,27 @@ enum {
 
 @implementation SSAppDelegate {
     RoutingHTTPServer *_httpServer;
-    NSMutableDictionary *_temporaryURLs;
+    NSMutableDictionary *_temporaryCodes;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     [_logTextView setString:@""];
-    
     [_topSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
                     forSubviewAtIndex:0];
     [_mainSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
                      forSubviewAtIndex:0];
-        
+    
+    // Set up the HTTP server.
+    
     _httpServer = [RoutingHTTPServer new];
     
-    _temporaryURLs = [NSMutableDictionary dictionary];
+    _temporaryCodes = [NSMutableDictionary dictionary];
     
     [_httpServer handleMethod:@"options" withPath:@"*" block:^(RouteRequest *request, RouteResponse *response) {
         [self _allowForRequest:request response:response];
-        [response setHeader:@"Allow" value:@"GET,OPTIONS"];
-        SSLog(@"Got request: %@", request);
+        
+        SSLog(@"Got options request: %@", request);
     }];
     
     [_httpServer get:@"/ping" withBlock:^(RouteRequest *request, RouteResponse *response) {
@@ -58,7 +59,7 @@ enum {
     [_httpServer get:@"/scan" withBlock:^(RouteRequest *request, RouteResponse *response) {
         [self _allowForRequest:request response:response];
         
-        SSLog(@"Got request: %@", request);
+        SSLog(@"Got scan request: %@", request);
         
         if (!_scanManager.readyToScan) {
             response.statusCode = 503;
@@ -66,14 +67,18 @@ enum {
             return;
         }
         
-        // Scan documents.
+        // Scan the documents.
         
         dispatch_sync(dispatch_get_main_queue(), ^{
-            _scanManager.scanner.documentUTI = (_scanTypeControl.selectedTag == kDocumentTypeTagPDF
-                                                ? (__bridge NSString *)kUTTypePDF
-                                                : (_scanTypeControl.selectedTag == kDocumentTypeTagJPEG
-                                                   ? (__bridge NSString *)kUTTypeJPEG
-                                                   : (__bridge NSString *)kUTTypeJPEG));
+            switch (_scanTypeControl.selectedTag) {
+                case kDocumentTypeTagJPEG:
+                    _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypeJPEG;
+                    break;
+                case kDocumentTypeTagPDF:
+                default:
+                    _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypePDF;
+                    break;
+            }
         });
         [_scanManager scanSync:^(BOOL success, NSError *error, NSArray *scannedURLs) {
             if (!success) {
@@ -92,16 +97,13 @@ enum {
         [self _allowForRequest:request response:response];
         
         NSString *code = [request param:@"code"];
-        
         SSLog(@"Got request for file %@", code);
         
-        NSURL *fileURL = _temporaryURLs[code];
+        NSURL *fileURL = _temporaryCodes[code];
         if (!fileURL) {
             response.statusCode = 404;
             return;
         }
-        
-        [_temporaryURLs removeObjectForKey:code];
         
         // -respondWithFile: doesn't work because we want to delete the file immediately.
         NSError *error = nil;
@@ -116,16 +118,161 @@ enum {
             @"type": [self _MIMETypeForURL:fileURL] ?: @"application/octet-stream"
          }];
         
-        // Delete scanned file.
+        // Delete the scanned file.
+        [_temporaryCodes removeObjectForKey:code];
         if (![[NSFileManager defaultManager] removeItemAtURL:fileURL
                                                        error:&error]) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                SSLog(@"Error deleting scanned file: %@", error);
-            });
+            SSLog(@"Error deleting scanned file: %@", error);
         }
     }];
     
     [self restartServer:nil];
+}
+
+- (IBAction)restartServer:(id)sender
+{
+    NSError *error = nil;
+    
+    [_httpServer stop];
+    _httpServer.port = strtoul([[_serverPortField stringValue] UTF8String], NULL, 10);//49152 + arc4random_uniform(65535 - 49152 + 1);
+    if (_httpServer.port == 0) _httpServer.port = 8080;
+    if ([_httpServer start:&error]) {
+        [_serverStatusText setStringValue:@"Server running."];
+        [_serverStatusImage setImage:[NSImage imageNamed:@"on"]];
+    }
+    else {
+        SSLog(@"Error starting server: %@", error);
+        [_serverStatusText setStringValue:error.localizedDescription ?: @"Error starting server."];
+        [_serverStatusImage setImage:[NSImage imageNamed:@"off"]];
+    }
+}
+
+
+#pragma mark
+#pragma mark Split view delegate methods
+
+-  (BOOL)splitView:(NSSplitView *)splitView
+canCollapseSubview:(NSView *)subview
+{
+    return [_logTextView isDescendantOf:subview];
+}
+-              (BOOL)splitView:(NSSplitView *)splitView
+         shouldCollapseSubview:(NSView *)subview
+forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
+{
+    return [_logTextView isDescendantOf:subview];
+}
+
+
+#pragma mark
+#pragma mark Browser view delegate methods
+
+- (void)deviceBrowserView:(IKDeviceBrowserView *)deviceBrowserView selectionDidChange:(ICDevice *)device
+{
+    SSLog(@"Browser selected device “%@”", device.name);
+    
+    if (!device) return;
+    
+    if (!(device.type & ICDeviceTypeMaskScanner && [device isKindOfClass:[ICScannerDevice class]])) {
+        SSLog(@"Unexpected device type! %@", device);
+        return;
+    }
+    
+    _scanManager.scanner = (ICScannerDevice *)device;
+}
+
+
+#pragma mark
+#pragma mark Utility methods
+
+- (void)_respondTo:(RouteResponse *)response withJSON:(id)object
+{
+    NSError *error = nil;
+    NSData *resData = [NSJSONSerialization dataWithJSONObject:object options:0 error:&error];
+    if (!resData) {
+        SSLog(@"JSON error: %@", error);
+    }
+    [response respondWithData:resData];
+}
+
+- (void)_allowForRequest:(RouteRequest *)request response:(RouteResponse *)response
+{
+    [response setHeader:@"Allow" value:@"GET,OPTIONS"];
+    
+    NSString *host = [[NSURL URLWithString:[request header:@"Origin"]] host];
+    if ([host isEqualToString:@"localhost"] || [host rangeOfString:@"(\\A|\\.)counsyl\\.com\\z"
+                                                           options:NSRegularExpressionSearch].location != NSNotFound) {
+        [response setHeader:@"Access-Control-Allow-Origin"
+                      value:[request header:@"Origin"]];
+    }
+    
+    NSString *requestHeaders = [request header:@"Access-Control-Request-Headers"];
+    if (requestHeaders) {
+        [response setHeader:@"Access-Control-Allow-Headers"
+                      value:requestHeaders];
+    }
+}
+
+- (NSArray *)_generateTemporaryCodesForFiles:(NSArray *)fileURLs
+{
+    NSMutableArray *tempCodes = [NSMutableArray array];
+    
+    for (NSURL *url in fileURLs) {
+        NSString *code = [self _generateCode];
+        _temporaryCodes[code] = url;
+        [tempCodes addObject:code];
+    }
+    
+    return tempCodes;
+}
+
+- (NSString *)_generateCode
+{
+    static char alphabet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    char code[TEMPORARY_CODE_LENGTH+1] = {0};
+    
+    for (int i = 0; i < TEMPORARY_CODE_LENGTH; i++) {
+        code[i] = alphabet[arc4random_uniform(sizeof(alphabet)-1)];
+    }
+    
+    return [NSString stringWithUTF8String:code];
+}
+
+- (void)log:(NSString *)format, ... NS_FORMAT_FUNCTION(1,2)
+{
+    static NSDateFormatter *formatter;
+    static NSDictionary * _stampAttributes;
+    static NSDictionary *_messageAttributes;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        formatter = [NSDateFormatter new];
+        formatter.dateFormat = @"[yyyy-MM-dd HH:mm:ss.SSS] ";
+        formatter.formatterBehavior = NSDateFormatterBehavior10_4;
+        
+        _messageAttributes = @{ NSFontAttributeName : [NSFont userFixedPitchFontOfSize:0] };
+        _stampAttributes   = @{ NSFontAttributeName :
+                                    [[NSFontManager sharedFontManager] convertFont:[NSFont userFixedPitchFontOfSize:0]
+                                                                       toHaveTrait:NSBoldFontMask]
+                                };
+    });
+    
+    va_list args;
+    va_start(args, format);
+    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    NSString *stamp = [formatter stringFromDate:[NSDate date]];
+    
+    [[_logTextView textStorage] appendAttributedString:
+     [[NSAttributedString alloc] initWithString:stamp
+                                     attributes:_stampAttributes]];
+    
+    [[_logTextView textStorage] appendAttributedString:
+     [[NSAttributedString alloc] initWithString:[message stringByAppendingString:@"\n"]
+                                     attributes:_messageAttributes]];
+    
+    [_logTextView scrollToEndOfDocument:self];
 }
 
 - (NSString *)_base64StringWithContentsOfURL:(NSURL *)url
@@ -166,145 +313,6 @@ enum {
     }
     
     return contentType;
-}
-
-- (NSArray *)_generateTemporaryCodesForFiles:(NSArray *)fileURLs
-{
-    NSMutableArray *tempCodes = [NSMutableArray array];
-    
-    for (NSURL *url in fileURLs) {
-        NSString *code = [self _generateCode];
-        _temporaryURLs[code] = url;
-        [tempCodes addObject:code];
-    }
-    
-    return tempCodes;
-}
-
-- (NSString *)_generateCode
-{
-    static char alphabet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    char code[TEMPORARY_CODE_LENGTH+1] = {0};
-    
-    for (int i = 0; i < TEMPORARY_CODE_LENGTH; i++) {
-        code[i] = alphabet[arc4random_uniform(sizeof(alphabet)-1)];
-    }
-    
-    return [NSString stringWithUTF8String:code];
-}
-
-- (void)_respondTo:(RouteResponse *)response withJSON:(id)object
-{
-    NSError *error = nil;
-    NSData *resData = [NSJSONSerialization dataWithJSONObject:object options:0 error:&error];
-    if (!resData) {
-        SSLog(@"JSON error: %@", error);
-    }
-    [response respondWithData:resData];
-}
-
-- (void)_allowForRequest:(RouteRequest *)request response:(RouteResponse *)response
-{
-    NSString *host = [[NSURL URLWithString:[request header:@"Origin"]] host];
-    if ([host isEqualToString:@"localhost"] || [host rangeOfString:@"(\\A|\\.)counsyl\\.com\\z"
-                                                           options:NSRegularExpressionSearch].location != NSNotFound) {
-        [response setHeader:@"Access-Control-Allow-Origin"
-                      value:[request header:@"Origin"]];
-    }
-    
-    NSString *requestHeaders = [request header:@"Access-Control-Request-Headers"];
-    if (requestHeaders) {
-        [response setHeader:@"Access-Control-Allow-Headers"
-                      value:requestHeaders];
-    }
-}
-
-- (IBAction)restartServer:(id)sender
-{
-    NSError *error = nil;
-    
-    [_httpServer stop];
-    _httpServer.port = strtoul([[_serverPortField stringValue] UTF8String], NULL, 10);//49152 + arc4random_uniform(65535 - 49152 + 1);
-    if (_httpServer.port == 0) _httpServer.port = 8080;
-    if ([_httpServer start:&error]) {
-        [_serverStatusText setStringValue:@"Server running."];
-        [_serverStatusImage setImage:[NSImage imageNamed:@"on"]];
-    }
-    else {
-        SSLog(@"Error starting server: %@", error);
-        [_serverStatusText setStringValue:error.localizedDescription ?: @"Error starting server."];
-        [_serverStatusImage setImage:[NSImage imageNamed:@"off"]];
-    }
-}
-
--  (BOOL)splitView:(NSSplitView *)splitView
-canCollapseSubview:(NSView *)subview
-{
-    return [_logTextView isDescendantOf:subview];
-}
--              (BOOL)splitView:(NSSplitView *)splitView
-         shouldCollapseSubview:(NSView *)subview
-forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
-{
-    return [_logTextView isDescendantOf:subview];
-}
-
-#pragma mark
-#pragma mark Browser view delegate methods
-
-- (void)deviceBrowserView:(IKDeviceBrowserView *)deviceBrowserView selectionDidChange:(ICDevice *)device
-{
-    SSLog(@"Browser selected device “%@”", device.name);
-    
-    if (!device) return;
-    
-    if (!(device.type & ICDeviceTypeMaskScanner && [device isKindOfClass:[ICScannerDevice class]])) {
-        SSLog(@"Unexpected device type! %@", device);
-        return;
-    }
-    
-    _scanManager.scanner = (ICScannerDevice *)device;
-}
-
-
-#pragma mark
-#pragma mark Utility methods
-
-- (void)log:(NSString *)format, ... NS_FORMAT_FUNCTION(1,2)
-{
-    static NSDateFormatter *formatter;
-    static NSDictionary * _stampAttributes;
-    static NSDictionary *_messageAttributes;
-    
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        formatter = [NSDateFormatter new];
-        formatter.dateFormat = @"[yyyy-MM-dd HH:mm:ss.SSS] ";
-        formatter.formatterBehavior = NSDateFormatterBehavior10_4;
-        
-        _messageAttributes = @{ NSFontAttributeName : [NSFont userFixedPitchFontOfSize:0] };
-        _stampAttributes   = @{ NSFontAttributeName :
-                                    [[NSFontManager sharedFontManager] convertFont:[NSFont userFixedPitchFontOfSize:0]
-                                                                       toHaveTrait:NSBoldFontMask]
-                                };
-    });
-    
-    va_list args;
-    va_start(args, format);
-    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
-    va_end(args);
-    
-    NSString *stamp = [formatter stringFromDate:[NSDate date]];
-    
-    [[_logTextView textStorage] appendAttributedString:
-     [[NSAttributedString alloc] initWithString:stamp
-                                     attributes:_stampAttributes]];
-    
-    [[_logTextView textStorage] appendAttributedString:
-     [[NSAttributedString alloc] initWithString:[message stringByAppendingString:@"\n"]
-                                     attributes:_messageAttributes]];
-    
-    [_logTextView scrollToEndOfDocument:self];
 }
 
 
