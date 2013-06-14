@@ -8,6 +8,96 @@
 
 #import "SSLoginItemManager.h"
 
-@implementation SSLoginItemManager
+
+@implementation SSLoginItemManager {
+    LSSharedFileListRef _loginItemList;
+    NSURL *_applicationURL;
+}
+
+- (id)init
+{
+    self = [super init];
+    if (self) {
+        _applicationURL = [NSBundle mainBundle].bundleURL;
+        _loginItemList = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
+        LSSharedFileListAddObserver(_loginItemList,
+                                    CFRunLoopGetCurrent(),
+                                    kCFRunLoopDefaultMode,
+                                    listChangedCallback,
+                                    (__bridge void *)self);
+        [self _loginItemListChanged];
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    LSSharedFileListRemoveObserver(_loginItemList,
+                                   CFRunLoopGetCurrent(),
+                                   kCFRunLoopDefaultMode,
+                                   listChangedCallback,
+                                   (__bridge void *)self);
+    CFRelease(_loginItemList);
+}
+
+void listChangedCallback(LSSharedFileListRef inList, void *context)
+{
+    [(__bridge SSLoginItemManager *)context _loginItemListChanged];
+}
+
+- (LSSharedFileListItemRef)_searchForApplicationInList
+{
+    NSArray *items = (__bridge_transfer NSArray *)LSSharedFileListCopySnapshot(_loginItemList, NULL);
+    for (id item in items) {
+        CFURLRef itemURL = NULL;
+        if (LSSharedFileListItemResolve((__bridge LSSharedFileListItemRef)item,
+                                        kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes,
+                                        &itemURL,
+                                        NULL) != noErr) {
+            NSLog(@"Error resolving list item");
+            continue;
+        }
+        
+        if ([_applicationURL isEqual:(__bridge NSURL *)itemURL]) {
+            return (__bridge_retained LSSharedFileListItemRef)item;
+        }
+    }
+    return NULL;
+}
+
+- (void)_loginItemListChanged
+{
+    BOOL appInList = ((__bridge_transfer id)[self _searchForApplicationInList] != NULL);
+    
+    [self willChangeValueForKey:@"openApplicationAtLogin"];
+    _openApplicationAtLogin = appInList;
+    [self didChangeValueForKey:@"openApplicationAtLogin"];
+}
+
+- (void)setOpenApplicationAtLogin:(BOOL)shouldOpen
+{
+    LSSharedFileListItemRef appItem = [self _searchForApplicationInList];
+    
+    if (appItem && !shouldOpen) {
+        if (LSSharedFileListItemRemove(_loginItemList, appItem) != noErr) {
+            NSLog(@"Error removing list item");
+        }
+        CFRelease(appItem);
+    }
+    else if (!appItem && shouldOpen) {
+        if (!LSSharedFileListInsertItemURL(_loginItemList,
+                                           kLSSharedFileListItemBeforeFirst,
+                                           NULL, NULL,
+                                           (__bridge CFURLRef)_applicationURL,
+                                           NULL, NULL)) {
+            NSLog(@"Error inserting list item");
+        }
+    }
+    
+    [self willChangeValueForKey:@"openApplicationAtLogin"];
+    _openApplicationAtLogin = shouldOpen;
+    [self didChangeValueForKey:@"openApplicationAtLogin"];
+}
+
 
 @end

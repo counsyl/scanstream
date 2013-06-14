@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
+
 @interface SSLoginItemManager : NSObject
+
+@property (nonatomic) BOOL openApplicationAtLogin;
 
 @end
