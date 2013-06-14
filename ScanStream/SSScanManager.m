@@ -184,7 +184,6 @@ didSelectFunctionalUnit:(ICScannerFunctionalUnit *)functionalUnit
     
     _functionalUnit.pixelDataType = ICScannerPixelDataTypeRGB;
     _functionalUnit.bitDepth = [_functionalUnit.supportedBitDepths lastIndex];
-//    _functionalUnit.
 }
 
 - (void)deviceDidBecomeReady:(ICDevice *)device

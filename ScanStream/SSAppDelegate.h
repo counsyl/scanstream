@@ -22,6 +22,7 @@
 @property (weak) IBOutlet NSSplitView *mainSplitView;
 @property (weak) IBOutlet NSImageView *serverStatusImage;
 @property (weak) IBOutlet NSSegmentedControl *scanTypeControl;
+@property (weak) IBOutlet NSSegmentedControl *scanResolutionControl;
 
 @property (strong) IBOutlet SSScanManager *scanManager;
 @property (weak) IBOutlet NSTextField *serverStatusText;

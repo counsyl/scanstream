@@ -36,6 +36,11 @@ enum {
     [_mainSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
                      forSubviewAtIndex:0];
     
+    [_scanManager addObserver:self
+                   forKeyPath:@"scanner.selectedFunctionalUnit.supportedResolutions"
+                      options:NSKeyValueObservingOptionInitial
+                      context:NULL];
+    
     // Set up the HTTP server.
     
     _httpServer = [RoutingHTTPServer new];
@@ -67,8 +72,7 @@ enum {
             return;
         }
         
-        // Scan the documents.
-        
+        // Configure scanner options.
         dispatch_sync(dispatch_get_main_queue(), ^{
             switch (_scanTypeControl.selectedTag) {
                 case kDocumentTypeTagJPEG:
@@ -79,7 +83,14 @@ enum {
                     _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypePDF;
                     break;
             }
+            
+            // Secretly, all functional units support -setDocumentType:.
+            [(id)_scanManager.scanner.selectedFunctionalUnit setDocumentType:ICScannerDocumentTypeUSLetter];
+            
+            _scanManager.scanner.selectedFunctionalUnit.resolution = [_scanResolutionControl selectedTag];
         });
+        
+        // Scan the documents.
         [_scanManager scanSync:^(BOOL success, NSError *error, NSArray *scannedURLs) {
             if (!success) {
                 response.statusCode = 500;
@@ -127,6 +138,35 @@ enum {
     }];
     
     [self restartServer:nil];
+}
+
+- (void)dealloc
+{
+    [_scanManager removeObserver:self forKeyPath:@"scanner.selectedFunctionalUnit.supportedResolutions"];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+    NSIndexSet *resolutions = _scanManager.scanner.selectedFunctionalUnit.supportedResolutions;
+    if ([resolutions count] > 0) {
+        _scanResolutionControl.enabled = YES;
+        _scanResolutionControl.segmentCount = [resolutions count];
+        NSUInteger __block segmentIndex = 0;
+        [resolutions enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+            [_scanResolutionControl setLabel:[NSString stringWithFormat:@"%lu", idx] forSegment:segmentIndex];
+            [_scanResolutionControl.cell setTag:idx forSegment:segmentIndex];
+            segmentIndex++;
+        }];
+        [_scanResolutionControl selectSegmentWithTag:[resolutions firstIndex]];
+    }
+    else {
+        _scanResolutionControl.enabled = NO;
+        _scanResolutionControl.segmentCount = 1;
+        [_scanResolutionControl setLabel:@"Connecting to Scanner…" forSegment:0];
+    }
 }
 
 - (IBAction)restartServer:(id)sender
