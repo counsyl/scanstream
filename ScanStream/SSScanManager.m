@@ -111,7 +111,7 @@ NSString *const SSScanManagerErrorDomain = @"SSScanManagerErrorDomain";
     self.scanInProgress = NO;
     [NSApp dockTile].badgeLabel = (scanner ? @"⋯" : nil);
     [NSApp setApplicationIconImage:
-     [[NSImage alloc] initWithCGImage:scanner.icon size:NSZeroSize]];
+     scanner ? [[NSImage alloc] initWithCGImage:scanner.icon size:NSZeroSize] : nil];
     
     _scanner = scanner;
     _scanner.transferMode = ICScannerTransferModeFileBased;
