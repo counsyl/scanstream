@@ -74,7 +74,8 @@ enum {
         
         // Configure scanner options.
         dispatch_sync(dispatch_get_main_queue(), ^{
-            switch (_scanTypeControl.selectedTag) {
+            // For some reason, -selectedTag doesn't work.
+            switch ([_scanTypeControl.cell tagForSegment:_scanTypeControl.selectedSegment]) {
                 case kDocumentTypeTagJPEG:
                     _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypeJPEG;
                     break;
@@ -87,7 +88,8 @@ enum {
             // Secretly, all functional units support -setDocumentType:.
             [(id)_scanManager.scanner.selectedFunctionalUnit setDocumentType:ICScannerDocumentTypeUSLetter];
             
-            _scanManager.scanner.selectedFunctionalUnit.resolution = [_scanResolutionControl selectedTag];
+            _scanManager.scanner.selectedFunctionalUnit.resolution = [_scanResolutionControl.cell
+                                                                      tagForSegment:_scanTypeControl.selectedSegment];
         });
         
         // Scan the documents.
