@@ -41,6 +41,12 @@ enum {
                       options:NSKeyValueObservingOptionInitial
                       context:NULL];
     
+    
+    [self _setupServer];
+}
+
+- (void)_setupServer
+{
     // Set up the HTTP server.
     
     _httpServer = [RoutingHTTPServer new];
