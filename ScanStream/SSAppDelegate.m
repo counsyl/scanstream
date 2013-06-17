@@ -58,7 +58,7 @@ enum {
         
         SSLog(@"Got ping request: %@", request);
         
-        [response respondWithString:@"pong"];
+        [self _respondTo:response withJSON:@{ @"ready": @(_scanManager.readyToScan) }];
     }];
     
     [_httpServer get:@"/scan" withBlock:^(RouteRequest *request, RouteResponse *response) {
