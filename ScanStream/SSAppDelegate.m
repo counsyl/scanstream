@@ -335,7 +335,7 @@ forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
         return nil;
     }
     NSData *outData = (__bridge_transfer NSData *)SecTransformExecute(transform, &error);
-    return [NSString stringWithUTF8String:[outData bytes]];
+    return [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding];
 }
 
 - (NSString *)_MIMETypeForURL:(NSURL *)fileURL
