@@ -334,13 +334,16 @@ forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
     NSData *inData = [NSData dataWithContentsOfURL:url];
     if (!inData) {
         SSLog(@"Error reading data from URL %@", url);
+        CFRelease(transform);
         return nil;
     }
     if (!SecTransformSetAttribute(transform, kSecTransformInputAttributeName, (__bridge CFDataRef)inData, &error)) {
         SSLog(@"Error setting transform input: %@", error);
+        CFRelease(transform);
         return nil;
     }
     NSData *outData = (__bridge_transfer NSData *)SecTransformExecute(transform, &error);
+    CFRelease(transform);
     return [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding];
 }
 
