@@ -248,8 +248,9 @@ forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
     [response setHeader:@"Allow" value:@"GET,OPTIONS"];
     
     NSString *host = [[NSURL URLWithString:[request header:@"Origin"]] host];
-    if ([host isEqualToString:@"localhost"] || [host rangeOfString:@"(\\A|\\.)counsyl\\.com\\z"
-                                                           options:NSRegularExpressionSearch].location != NSNotFound) {
+    if (host && ([host isEqualToString:@"localhost"] ||
+                 [host rangeOfString:@"(\\A|\\.)counsyl\\.com\\z"
+                             options:NSRegularExpressionSearch].location != NSNotFound)) {
         [response setHeader:@"Access-Control-Allow-Origin"
                       value:[request header:@"Origin"]];
     }
