@@ -11,7 +11,6 @@
 		169B83C3176958B700230FB7 /* off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 169B83BF176958B700230FB7 /* off@2x.png */; };
 		169B83C4176958B700230FB7 /* on.png in Resources */ = {isa = PBXBuildFile; fileRef = 169B83C0176958B700230FB7 /* on.png */; };
 		169B83C5176958B700230FB7 /* on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 169B83C1176958B700230FB7 /* on@2x.png */; };
-		169B83CB1769692100230FB7 /* SSNumberOnlyFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 169B83CA1769692100230FB7 /* SSNumberOnlyFormatter.m */; };
 		16A9F94A176BAA20009795C2 /* SSLoginItemManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 16A9F949176BAA20009795C2 /* SSLoginItemManager.m */; };
 		16E6F1AB1767E21900A6E493 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16E6F1AA1767E21900A6E493 /* Cocoa.framework */; };
 		16E6F1B51767E21900A6E493 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 16E6F1B31767E21900A6E493 /* InfoPlist.strings */; };
@@ -30,8 +29,6 @@
 		169B83BF176958B700230FB7 /* off@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "off@2x.png"; sourceTree = "<group>"; };
 		169B83C0176958B700230FB7 /* on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = on.png; sourceTree = "<group>"; };
 		169B83C1176958B700230FB7 /* on@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "on@2x.png"; sourceTree = "<group>"; };
-		169B83C91769692000230FB7 /* SSNumberOnlyFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSNumberOnlyFormatter.h; sourceTree = "<group>"; };
-		169B83CA1769692100230FB7 /* SSNumberOnlyFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSNumberOnlyFormatter.m; sourceTree = "<group>"; };
 		16A9F948176BAA20009795C2 /* SSLoginItemManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSLoginItemManager.h; sourceTree = "<group>"; };
 		16A9F949176BAA20009795C2 /* SSLoginItemManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSLoginItemManager.m; sourceTree = "<group>"; };
 		16E6F1A71767E21900A6E493 /* ScanStream.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScanStream.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -120,8 +117,6 @@
 				16E6F52D1767FEF500A6E493 /* SSScanManager.m */,
 				16A9F948176BAA20009795C2 /* SSLoginItemManager.h */,
 				16A9F949176BAA20009795C2 /* SSLoginItemManager.m */,
-				169B83C91769692000230FB7 /* SSNumberOnlyFormatter.h */,
-				169B83CA1769692100230FB7 /* SSNumberOnlyFormatter.m */,
 				16E6F1BF1767E21900A6E493 /* MainMenu.xib */,
 				16E6F1B11767E21900A6E493 /* Supporting Files */,
 			);
@@ -247,7 +242,6 @@
 				16E6F1B71767E21900A6E493 /* main.m in Sources */,
 				16E6F1BE1767E21900A6E493 /* SSAppDelegate.m in Sources */,
 				16E6F52E1767FEF500A6E493 /* SSScanManager.m in Sources */,
-				169B83CB1769692100230FB7 /* SSNumberOnlyFormatter.m in Sources */,
 				16A9F94A176BAA20009795C2 /* SSLoginItemManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

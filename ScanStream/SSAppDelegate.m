@@ -12,11 +12,7 @@
 
 
 #define TEMPORARY_CODE_LENGTH 32
-
-enum {
-    kDocumentTypeTagPDF = 0,
-    kDocumentTypeTagJPEG = 1
-};
+static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
 
 
 @interface SSAppDelegate () <IKDeviceBrowserViewDelegate>
@@ -30,17 +26,15 @@ enum {
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-    [_logTextView setString:@""];
-    [_topSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
-                    forSubviewAtIndex:0];
-    [_mainSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
-                     forSubviewAtIndex:0];
+//    [_logTextView setString:@""];
+//    [_topSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
+//                    forSubviewAtIndex:0];
+//    [_mainSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
+//                     forSubviewAtIndex:0];
     
-    [_scanManager addObserver:self
-                   forKeyPath:@"scanner.selectedFunctionalUnit.supportedResolutions"
-                      options:NSKeyValueObservingOptionInitial
-                      context:NULL];
-    
+    [_serverStatusText.cell setBackgroundStyle:NSBackgroundStyleRaised];
+    [_scanStatusText.cell setBackgroundStyle:NSBackgroundStyleRaised];
+    [_loginCheckbox.cell setBackgroundStyle:NSBackgroundStyleRaised];
     
     [self _setupServer];
 }
@@ -80,22 +74,13 @@ enum {
         
         // Configure scanner options.
         dispatch_sync(dispatch_get_main_queue(), ^{
-            // For some reason, -selectedTag doesn't work.
-            switch ([_scanTypeControl.cell tagForSegment:_scanTypeControl.selectedSegment]) {
-                case kDocumentTypeTagJPEG:
-                    _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypeJPEG;
-                    break;
-                case kDocumentTypeTagPDF:
-                default:
-                    _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypePDF;
-                    break;
-            }
+            _scanManager.scanner.documentUTI = (__bridge NSString *)kUTTypeJPEG;
             
             // Secretly, all functional units support -setDocumentType:.
             [(id)_scanManager.scanner.selectedFunctionalUnit setDocumentType:ICScannerDocumentTypeUSLetter];
             
-            _scanManager.scanner.selectedFunctionalUnit.resolution = [_scanResolutionControl.cell
-                                                                      tagForSegment:_scanTypeControl.selectedSegment];
+            NSIndexSet *resolutions = _scanManager.scanner.selectedFunctionalUnit.supportedResolutions;
+            _scanManager.scanner.selectedFunctionalUnit.resolution = resolutions.firstIndex;
         });
         
         // Scan the documents.
@@ -148,42 +133,12 @@ enum {
     [self restartServer:nil];
 }
 
-- (void)dealloc
-{
-    [_scanManager removeObserver:self forKeyPath:@"scanner.selectedFunctionalUnit.supportedResolutions"];
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context
-{
-    NSIndexSet *resolutions = _scanManager.scanner.selectedFunctionalUnit.supportedResolutions;
-    if ([resolutions count] > 0) {
-        _scanResolutionControl.enabled = YES;
-        _scanResolutionControl.segmentCount = [resolutions count];
-        NSUInteger __block segmentIndex = 0;
-        [resolutions enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
-            [_scanResolutionControl setLabel:[NSString stringWithFormat:@"%lu", idx] forSegment:segmentIndex];
-            [_scanResolutionControl.cell setTag:idx forSegment:segmentIndex];
-            segmentIndex++;
-        }];
-        [_scanResolutionControl selectSegmentWithTag:[resolutions firstIndex]];
-    }
-    else {
-        _scanResolutionControl.enabled = NO;
-        _scanResolutionControl.segmentCount = 1;
-        [_scanResolutionControl setLabel:@"Connecting to Scanner…" forSegment:0];
-    }
-}
-
 - (IBAction)restartServer:(id)sender
 {
     NSError *error = nil;
     
     [_httpServer stop];
-    _httpServer.port = strtoul([[_serverPortField stringValue] UTF8String], NULL, 10);//49152 + arc4random_uniform(65535 - 49152 + 1);
-    if (_httpServer.port == 0) _httpServer.port = 8080;
+    _httpServer.port = [[NSUserDefaults standardUserDefaults] integerForKey:SSServerPortDefaultsKey] ?: 8080;
     if ([_httpServer start:&error]) {
         [_serverStatusText setStringValue:@"Server running."];
         [_serverStatusImage setImage:[NSImage imageNamed:@"on"]];
@@ -196,20 +151,20 @@ enum {
 }
 
 
-#pragma mark
-#pragma mark Split view delegate methods
-
--  (BOOL)splitView:(NSSplitView *)splitView
-canCollapseSubview:(NSView *)subview
-{
-    return [_logTextView isDescendantOf:subview];
-}
--              (BOOL)splitView:(NSSplitView *)splitView
-         shouldCollapseSubview:(NSView *)subview
-forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
-{
-    return [_logTextView isDescendantOf:subview];
-}
+//#pragma mark
+//#pragma mark Split view delegate methods
+//
+//-  (BOOL)splitView:(NSSplitView *)splitView
+//canCollapseSubview:(NSView *)subview
+//{
+//    return [_logTextView isDescendantOf:subview];
+//}
+//-              (BOOL)splitView:(NSSplitView *)splitView
+//         shouldCollapseSubview:(NSView *)subview
+//forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
+//{
+//    return [_logTextView isDescendantOf:subview];
+//}
 
 
 #pragma mark
@@ -239,6 +194,7 @@ forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
     NSData *resData = [NSJSONSerialization dataWithJSONObject:object options:0 error:&error];
     if (!resData) {
         SSLog(@"JSON error: %@", error);
+        return;
     }
     [response respondWithData:resData];
 }
@@ -289,39 +245,44 @@ forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
 
 - (void)log:(NSString *)format, ... NS_FORMAT_FUNCTION(1,2)
 {
-    static NSDateFormatter *formatter;
-    static NSDictionary * _stampAttributes;
-    static NSDictionary *_messageAttributes;
-    
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        formatter = [NSDateFormatter new];
-        formatter.dateFormat = @"[yyyy-MM-dd HH:mm:ss.SSS] ";
-        formatter.formatterBehavior = NSDateFormatterBehavior10_4;
-        
-        _messageAttributes = @{ NSFontAttributeName : [NSFont userFixedPitchFontOfSize:0] };
-        _stampAttributes   = @{ NSFontAttributeName :
-                                    [[NSFontManager sharedFontManager] convertFont:[NSFont userFixedPitchFontOfSize:0]
-                                                                       toHaveTrait:NSBoldFontMask]
-                                };
-    });
+//    static NSDateFormatter *formatter;
+//    static NSDictionary * _stampAttributes;
+//    static NSDictionary *_messageAttributes;
+//    
+//    static dispatch_once_t onceToken;
+//    dispatch_once(&onceToken, ^{
+//        formatter = [NSDateFormatter new];
+//        formatter.dateFormat = @"[yyyy-MM-dd HH:mm:ss.SSS] ";
+//        formatter.formatterBehavior = NSDateFormatterBehavior10_4;
+//        
+//        _messageAttributes = @{ NSFontAttributeName : [NSFont userFixedPitchFontOfSize:0] };
+//        _stampAttributes   = @{ NSFontAttributeName :
+//                                    [[NSFontManager sharedFontManager] convertFont:[NSFont userFixedPitchFontOfSize:0]
+//                                                                       toHaveTrait:NSBoldFontMask]
+//                                };
+//    });
+//    
+//    va_list args;
+//    va_start(args, format);
+//    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+//    va_end(args);
+//    
+//    NSString *stamp = [formatter stringFromDate:[NSDate date]];
+//    
+//    [[_logTextView textStorage] appendAttributedString:
+//     [[NSAttributedString alloc] initWithString:stamp
+//                                     attributes:_stampAttributes]];
+//    
+//    [[_logTextView textStorage] appendAttributedString:
+//     [[NSAttributedString alloc] initWithString:[message stringByAppendingString:@"\n"]
+//                                     attributes:_messageAttributes]];
+//    
+//    [_logTextView scrollToEndOfDocument:self];
     
     va_list args;
     va_start(args, format);
-    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+    NSLogv(format, args);
     va_end(args);
-    
-    NSString *stamp = [formatter stringFromDate:[NSDate date]];
-    
-    [[_logTextView textStorage] appendAttributedString:
-     [[NSAttributedString alloc] initWithString:stamp
-                                     attributes:_stampAttributes]];
-    
-    [[_logTextView textStorage] appendAttributedString:
-     [[NSAttributedString alloc] initWithString:[message stringByAppendingString:@"\n"]
-                                     attributes:_messageAttributes]];
-    
-    [_logTextView scrollToEndOfDocument:self];
 }
 
 - (NSString *)_base64StringWithContentsOfURL:(NSURL *)url
