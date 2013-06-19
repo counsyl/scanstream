@@ -108,7 +108,7 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
         NSString *code = [request param:@"code"];
         SSLog(@"Got request for file %@", code);
         
-        NSURL *fileURL = _temporaryCodes[code];
+        NSURL *fileURL = [_temporaryCodes objectForKey:code];
         if (!fileURL) {
             response.statusCode = 404;
             return;
@@ -229,7 +229,7 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
     
     for (NSURL *url in fileURLs) {
         NSString *code = [self _generateCode];
-        _temporaryCodes[code] = url;
+        [_temporaryCodes setObject:url forKey:code];
         [tempCodes addObject:code];
     }
     
