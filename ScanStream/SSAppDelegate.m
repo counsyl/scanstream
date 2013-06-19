@@ -39,6 +39,11 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
     [self _setupServer];
 }
 
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender
+{
+    return YES;
+}
+
 - (void)_setupServer
 {
     // Set up the HTTP server.
