@@ -73,7 +73,7 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
         
         if (!_scanManager.readyToScan) {
             response.statusCode = 503;
-            [response respondWithString:@"Scanner is not ready"];
+            [self _respondTo:response withJSON:@{ @"error": @"Scanner is not ready." }];
             return;
         }
         
