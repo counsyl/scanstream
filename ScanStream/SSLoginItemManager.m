@@ -65,7 +65,7 @@ void listChangedCallback(LSSharedFileListRef inList, void *context)
             continue;
         }
         
-        if ([_applicationURL isEqual:(__bridge NSURL *)itemURL]) {
+        if ([_applicationURL isEqual:(__bridge_transfer NSURL *)itemURL]) {
             return (__bridge_retained LSSharedFileListItemRef)item;
         }
     }
