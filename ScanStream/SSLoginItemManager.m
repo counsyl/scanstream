@@ -20,24 +20,31 @@
     if (self) {
         _applicationURL = [NSBundle mainBundle].bundleURL;
         _loginItemList = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
-        LSSharedFileListAddObserver(_loginItemList,
-                                    CFRunLoopGetCurrent(),
-                                    kCFRunLoopDefaultMode,
-                                    listChangedCallback,
-                                    (__bridge void *)self);
-        [self _loginItemListChanged];
+        if (_loginItemList) {
+            LSSharedFileListAddObserver(_loginItemList,
+                                        CFRunLoopGetCurrent(),
+                                        kCFRunLoopDefaultMode,
+                                        listChangedCallback,
+                                        (__bridge void *)self);
+            [self _loginItemListChanged];
+        }
+        else {
+            NSLog(@"Error creating login item list");
+        }
     }
     return self;
 }
 
 - (void)dealloc
 {
-    LSSharedFileListRemoveObserver(_loginItemList,
-                                   CFRunLoopGetCurrent(),
-                                   kCFRunLoopDefaultMode,
-                                   listChangedCallback,
-                                   (__bridge void *)self);
-    CFRelease(_loginItemList);
+    if (_loginItemList) {
+        LSSharedFileListRemoveObserver(_loginItemList,
+                                       CFRunLoopGetCurrent(),
+                                       kCFRunLoopDefaultMode,
+                                       listChangedCallback,
+                                       (__bridge void *)self);
+        CFRelease(_loginItemList);
+    }
 }
 
 void listChangedCallback(LSSharedFileListRef inList, void *context)
@@ -76,6 +83,8 @@ void listChangedCallback(LSSharedFileListRef inList, void *context)
 
 - (void)setOpenApplicationAtLogin:(BOOL)shouldOpen
 {
+    if (!_loginItemList) return;
+    
     LSSharedFileListItemRef appItem = [self _searchForApplicationInList];
     
     if (appItem && !shouldOpen) {
