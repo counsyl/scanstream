@@ -11,6 +11,9 @@
 
 
 extern NSString *const SSScanManagerErrorDomain;
+
+// Scanned URLs are listed in the order they were scanned.
+// (Probably. ICScannerDevice doesn't actually guarantee this.)
 typedef void (^SSScanManagerCallback)(BOOL success, NSError *error, NSArray *scannedURLs);
 
 

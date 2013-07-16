@@ -25,6 +25,9 @@ To reset:
     GET /download/temp_file_id_1
     {"data": "<base64-encoded data>", "type": "image/jpeg"}
 
+Files are returned in the order they were scanned (to the extent that the OS X
+ICScannerDevice API does so — this is not in fact documented).
+
 ## Building
 
 TL;DR: run `make`.
