@@ -26,12 +26,6 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-//    [_logTextView setString:@""];
-//    [_topSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
-//                    forSubviewAtIndex:0];
-//    [_mainSplitView setHoldingPriority:0.5*(NSLayoutPriorityDefaultLow + NSLayoutPriorityDragThatCannotResizeWindow)
-//                     forSubviewAtIndex:0];
-    
     [_serverStatusText.cell setBackgroundStyle:NSBackgroundStyleRaised];
     [_scanStatusText.cell setBackgroundStyle:NSBackgroundStyleRaised];
     [_loginCheckbox.cell setBackgroundStyle:NSBackgroundStyleRaised];
@@ -156,22 +150,6 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
 }
 
 
-//#pragma mark
-//#pragma mark Split view delegate methods
-//
-//-  (BOOL)splitView:(NSSplitView *)splitView
-//canCollapseSubview:(NSView *)subview
-//{
-//    return [_logTextView isDescendantOf:subview];
-//}
-//-              (BOOL)splitView:(NSSplitView *)splitView
-//         shouldCollapseSubview:(NSView *)subview
-//forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex
-//{
-//    return [_logTextView isDescendantOf:subview];
-//}
-
-
 #pragma mark
 #pragma mark Browser view delegate methods
 
@@ -250,40 +228,6 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
 
 - (void)log:(NSString *)format, ... NS_FORMAT_FUNCTION(1,2)
 {
-//    static NSDateFormatter *formatter;
-//    static NSDictionary * _stampAttributes;
-//    static NSDictionary *_messageAttributes;
-//    
-//    static dispatch_once_t onceToken;
-//    dispatch_once(&onceToken, ^{
-//        formatter = [NSDateFormatter new];
-//        formatter.dateFormat = @"[yyyy-MM-dd HH:mm:ss.SSS] ";
-//        formatter.formatterBehavior = NSDateFormatterBehavior10_4;
-//        
-//        _messageAttributes = @{ NSFontAttributeName : [NSFont userFixedPitchFontOfSize:0] };
-//        _stampAttributes   = @{ NSFontAttributeName :
-//                                    [[NSFontManager sharedFontManager] convertFont:[NSFont userFixedPitchFontOfSize:0]
-//                                                                       toHaveTrait:NSBoldFontMask]
-//                                };
-//    });
-//    
-//    va_list args;
-//    va_start(args, format);
-//    NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
-//    va_end(args);
-//    
-//    NSString *stamp = [formatter stringFromDate:[NSDate date]];
-//    
-//    [[_logTextView textStorage] appendAttributedString:
-//     [[NSAttributedString alloc] initWithString:stamp
-//                                     attributes:_stampAttributes]];
-//    
-//    [[_logTextView textStorage] appendAttributedString:
-//     [[NSAttributedString alloc] initWithString:[message stringByAppendingString:@"\n"]
-//                                     attributes:_messageAttributes]];
-//    
-//    [_logTextView scrollToEndOfDocument:self];
-    
     va_list args;
     va_start(args, format);
     NSLogv(format, args);

@@ -194,17 +194,6 @@ didSelectFunctionalUnit:(ICScannerFunctionalUnit *)functionalUnit
     self.readyToScan = YES;
 }
 
-
-//- (void)device:(ICDevice *)device didReceiveCustomNotification:(NSDictionary *)notification data:(NSData *)data
-//{
-//    SSLog(@"Notification: %@ - %@", notification, data);
-//}
-//
-//- (void)device:(ICDevice *)device didReceiveButtonPress:(NSString*)buttonType
-//{
-//    SSLog(@"Button pressed: %@", buttonType);
-//}
-
 - (void)didRemoveDevice:(ICDevice *)device
 {
     SSLog(@"Device removed");
