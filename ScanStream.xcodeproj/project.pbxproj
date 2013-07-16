@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1648BAC11795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1648BAC01795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.m */; };
 		169B83C2176958B700230FB7 /* off.png in Resources */ = {isa = PBXBuildFile; fileRef = 169B83BE176958B700230FB7 /* off.png */; };
 		169B83C3176958B700230FB7 /* off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 169B83BF176958B700230FB7 /* off@2x.png */; };
 		169B83C4176958B700230FB7 /* on.png in Resources */ = {isa = PBXBuildFile; fileRef = 169B83C0176958B700230FB7 /* on.png */; };
@@ -25,6 +26,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1648BABF1795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSIndexSetToNumberArrayTransformer.h; sourceTree = "<group>"; };
+		1648BAC01795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSIndexSetToNumberArrayTransformer.m; sourceTree = "<group>"; };
 		169B83BE176958B700230FB7 /* off.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = off.png; sourceTree = "<group>"; };
 		169B83BF176958B700230FB7 /* off@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "off@2x.png"; sourceTree = "<group>"; };
 		169B83C0176958B700230FB7 /* on.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = on.png; sourceTree = "<group>"; };
@@ -117,6 +120,8 @@
 				16E6F52D1767FEF500A6E493 /* SSScanManager.m */,
 				16A9F948176BAA20009795C2 /* SSLoginItemManager.h */,
 				16A9F949176BAA20009795C2 /* SSLoginItemManager.m */,
+				1648BABF1795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.h */,
+				1648BAC01795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.m */,
 				16E6F1BF1767E21900A6E493 /* MainMenu.xib */,
 				16E6F1B11767E21900A6E493 /* Supporting Files */,
 			);
@@ -243,6 +248,7 @@
 				16E6F1BE1767E21900A6E493 /* SSAppDelegate.m in Sources */,
 				16E6F52E1767FEF500A6E493 /* SSScanManager.m in Sources */,
 				16A9F94A176BAA20009795C2 /* SSLoginItemManager.m in Sources */,
+				1648BAC11795E7FD00A17890 /* SSIndexSetToNumberArrayTransformer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
