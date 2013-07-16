@@ -16,7 +16,6 @@
 		16E6F1AB1767E21900A6E493 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16E6F1AA1767E21900A6E493 /* Cocoa.framework */; };
 		16E6F1B51767E21900A6E493 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 16E6F1B31767E21900A6E493 /* InfoPlist.strings */; };
 		16E6F1B71767E21900A6E493 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 16E6F1B61767E21900A6E493 /* main.m */; };
-		16E6F1BB1767E21900A6E493 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 16E6F1B91767E21900A6E493 /* Credits.rtf */; };
 		16E6F1BE1767E21900A6E493 /* SSAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 16E6F1BD1767E21900A6E493 /* SSAppDelegate.m */; };
 		16E6F1C11767E21900A6E493 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 16E6F1BF1767E21900A6E493 /* MainMenu.xib */; };
 		16E6F1C81767E50000A6E493 /* ImageCaptureCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16E6F1C71767E50000A6E493 /* ImageCaptureCore.framework */; };
@@ -42,7 +41,6 @@
 		16E6F1B41767E21900A6E493 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		16E6F1B61767E21900A6E493 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		16E6F1B81767E21900A6E493 /* ScanStream-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ScanStream-Prefix.pch"; sourceTree = "<group>"; };
-		16E6F1BA1767E21900A6E493 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		16E6F1BC1767E21900A6E493 /* SSAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SSAppDelegate.h; sourceTree = "<group>"; };
 		16E6F1BD1767E21900A6E493 /* SSAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SSAppDelegate.m; sourceTree = "<group>"; };
 		16E6F1C01767E21900A6E493 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
@@ -136,7 +134,6 @@
 				16E6F1B31767E21900A6E493 /* InfoPlist.strings */,
 				16E6F1B61767E21900A6E493 /* main.m */,
 				16E6F1B81767E21900A6E493 /* ScanStream-Prefix.pch */,
-				16E6F1B91767E21900A6E493 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -197,7 +194,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				16E6F1B51767E21900A6E493 /* InfoPlist.strings in Resources */,
-				16E6F1BB1767E21900A6E493 /* Credits.rtf in Resources */,
 				16E6F1C11767E21900A6E493 /* MainMenu.xib in Resources */,
 				169B83C2176958B700230FB7 /* off.png in Resources */,
 				169B83C3176958B700230FB7 /* off@2x.png in Resources */,
@@ -261,14 +257,6 @@
 				16E6F1B41767E21900A6E493 /* en */,
 			);
 			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		16E6F1B91767E21900A6E493 /* Credits.rtf */ = {
-			isa = PBXVariantGroup;
-			children = (
-				16E6F1BA1767E21900A6E493 /* en */,
-			);
-			name = Credits.rtf;
 			sourceTree = "<group>";
 		};
 		16E6F1BF1767E21900A6E493 /* MainMenu.xib */ = {
