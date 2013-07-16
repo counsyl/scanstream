@@ -32,3 +32,12 @@ TL;DR: run `make`.
 The project manages one dependency using [CocoaPods](http://cocoapods.org/), namely [RoutingHTTPServer](http://cocoadocs.org/docsets/RoutingHTTPServer/). To update to the latest release of it, run `pod update`. This is not necessary if you are building for the first time.
 
 `ScanStream.xcworkspace` is the main workspace file which contains both the ScanStream and CocoaPods projects. Building the ScanStream scheme (likely the default when you open the workspace) will build everything.
+
+### Versioning
+
+For ease of debugging, ScanStream displays its build version
+(`CFBundleVersion`) and marketing version (`CFBundleShortVersionString`) in the
+main window's title bar.
+
+To increment the build version, run `agvtool bump`. To set a new marketing
+version, run `agvtool new-marketing-version 1.2.3`.
