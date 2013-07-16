@@ -5,11 +5,11 @@ A native Mac app to interface between scanners and JSON clients.
 
 ScanStream provides a HTTP+JSON interface on `localhost`. By default it runs on port 8080, but this can be changed as follows:
 
-    defaults write com.counsyl.ScanStream SSServerPortDefaultsKey -int 54321
+    defaults write com.counsyl.ScanStream SSServerPort -int 54321
 
 To reset:
 
-    defaults delete com.counsyl.ScanStream SSServerPortDefaultsKey
+    defaults delete com.counsyl.ScanStream SSServerPort
 
 ### Interface details by example
 

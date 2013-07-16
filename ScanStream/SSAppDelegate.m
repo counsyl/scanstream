@@ -12,7 +12,8 @@
 
 
 #define TEMPORARY_CODE_LENGTH 32
-static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
+static NSString *const SSServerPortDefaultsKey = @"SSServerPort";
+static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanResolution";
 
 
 @interface SSAppDelegate () <IKDeviceBrowserViewDelegate>
@@ -78,8 +79,27 @@ static NSString *const SSServerPortDefaultsKey = @"SSServerPortDefaultsKey";
             // Secretly, all functional units support -setDocumentType:.
             [(id)_scanManager.scanner.selectedFunctionalUnit setDocumentType:ICScannerDocumentTypeUSLetter];
             
-            NSIndexSet *resolutions = _scanManager.scanner.selectedFunctionalUnit.supportedResolutions;
-            _scanManager.scanner.selectedFunctionalUnit.resolution = resolutions.firstIndex;
+            // Choose the lowest supported resolution equal to or greater than the preferred resolution,
+            // or if there are none, the highest supported resolution.
+            NSIndexSet *supportedResolutions = _scanManager.scanner.selectedFunctionalUnit.supportedResolutions;
+            if ([supportedResolutions count] <= 0) {
+                SSLog(@"No supported resolutions found.");
+                return;
+            }
+            
+            NSUInteger preferredResolution = ([[NSUserDefaults standardUserDefaults]
+                                               integerForKey:SSPreferredScanResolutionDefaultsKey]
+                                              ?: supportedResolutions.firstIndex);
+            NSIndexSet *possibleResolutions = [supportedResolutions indexesPassingTest:^(NSUInteger idx, BOOL *stop) {
+                return (BOOL)(idx >= preferredResolution);
+            }];
+            
+            NSUInteger bestResolution = ([possibleResolutions count] > 0
+                                         ? possibleResolutions.firstIndex
+                                         : supportedResolutions.lastIndex);
+            
+            SSLog(@"Scanning with resolution %lu.", (unsigned long)bestResolution);
+            _scanManager.scanner.selectedFunctionalUnit.resolution = bestResolution;
         });
         
         // Scan the documents.
