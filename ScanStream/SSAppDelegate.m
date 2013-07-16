@@ -31,6 +31,11 @@ static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanR
     [_scanStatusText.cell setBackgroundStyle:NSBackgroundStyleRaised];
     [_loginCheckbox.cell setBackgroundStyle:NSBackgroundStyleRaised];
     
+    _window.title = [NSString stringWithFormat:@"%@ %@ (%@)",
+                     _window.title,
+                     [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+                     [[NSBundle mainBundle] objectForInfoDictionaryKey:(__bridge NSString *)kCFBundleVersionKey]];
+    
     [self _setupServer];
 }
 
