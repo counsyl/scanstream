@@ -157,6 +157,19 @@ static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanR
     [self restartServer:nil];
 }
 
+- (void)applicationWillTerminate:(NSNotification *)notification
+{
+    NSError *error = nil;
+    
+    // Clean up files that were never downloaded.
+    for (NSURL *fileURL in [_temporaryCodes objectEnumerator]) {
+        if (![[NSFileManager defaultManager] removeItemAtURL:fileURL
+                                                       error:&error]) {
+            SSLog(@"Error deleting scanned file: %@", error);
+        }
+    }
+}
+
 - (IBAction)restartServer:(id)sender
 {
     NSError *error = nil;
