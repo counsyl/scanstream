@@ -13,6 +13,7 @@
 #define TEMPORARY_CODE_LENGTH 32
 static NSString *const SSServerPortDefaultsKey = @"SSServerPort";
 static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanResolution";
+static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPatterns";
 
 
 @interface SSAppDelegate () <IKDeviceBrowserViewDelegate>
@@ -22,6 +23,14 @@ static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanR
 @implementation SSAppDelegate {
     RoutingHTTPServer *_httpServer;
     NSMutableDictionary *_temporaryCodes;
+}
+
++ (void)initialize
+{
+    [[NSUserDefaults standardUserDefaults] registerDefaults:@{
+         SSServerPortDefaultsKey : @8080,
+         SSAllowedHostPatternsDefaultsKey : @[ @"\\Alocalhost\\z" ]
+     }];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -174,7 +183,7 @@ static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanR
     NSError *error = nil;
     
     [_httpServer stop];
-    _httpServer.port = [[NSUserDefaults standardUserDefaults] integerForKey:SSServerPortDefaultsKey] ?: 8080;
+    _httpServer.port = [[NSUserDefaults standardUserDefaults] integerForKey:SSServerPortDefaultsKey];
     if ([_httpServer start:&error]) {
         [_serverStatusText setStringValue:@"Server running."];
         [_serverStatusImage setImage:[NSImage imageNamed:@"on"]];
@@ -224,11 +233,13 @@ static NSString *const SSPreferredScanResolutionDefaultsKey = @"SSPreferredScanR
     [response setHeader:@"Allow" value:@"GET,OPTIONS"];
     
     NSString *host = [[NSURL URLWithString:[request header:@"Origin"]] host];
-    if (host && ([host isEqualToString:@"localhost"] ||
-                 [host rangeOfString:@"(\\A|\\.)counsyl\\.com\\z"
-                             options:NSRegularExpressionSearch].location != NSNotFound)) {
-        [response setHeader:@"Access-Control-Allow-Origin"
-                      value:[request header:@"Origin"]];
+    for (NSString *hostPattern in [[NSUserDefaults standardUserDefaults] arrayForKey:SSAllowedHostPatternsDefaultsKey]) {
+        if (host && [host rangeOfString:hostPattern
+                                options:NSRegularExpressionSearch].location != NSNotFound) {
+            [response setHeader:@"Access-Control-Allow-Origin"
+                          value:[request header:@"Origin"]];
+            break;
+        }
     }
     
     NSString *requestHeaders = [request header:@"Access-Control-Request-Headers"];

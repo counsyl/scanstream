@@ -11,6 +11,10 @@ To reset:
 
     defaults delete com.counsyl.ScanStream SSServerPort
 
+Some browsers require the `Access-Control-Allow-Origin` response header to be set correctly for an XMLHttpRequest to succeed. ScanStream will by default set this header if the request originates from `localhost`; you can customize the allowed hosts using [regular expression](http://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSString_Class/Reference/NSString.html#//apple_ref/c/econst/NSRegularExpressionSearch) patterns:
+
+    defaults write com.counsyl.ScanStream SSAllowedHostPatterns -array -string '\Alocalhost\z' -string '(\A|\.)mydomain\.com\z'
+
 ### Interface details by example
 
     GET /ping
