@@ -2,8 +2,7 @@
 //  SSIndexSetToNumberArrayTransformer.m
 //  ScanStream
 //
-//  Created by Jacob Bandes-Storch on 7/16/13.
-//  Copyright (c) 2013 Counsyl. All rights reserved.
+//  Copyright (c) 2013 Counsyl, Inc. Released under the MIT license.
 //
 
 #import "SSIndexSetToNumberArrayTransformer.h"

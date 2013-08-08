@@ -2,8 +2,7 @@
 //  SSScanManager.m
 //  ScanStream
 //
-//  Created by Jacob Bandes-Storch on 6/11/13.
-//  Copyright (c) 2013 Counsyl. All rights reserved.
+//  Copyright (c) 2013 Counsyl, Inc. Released under the MIT license.
 //
 
 #import "SSScanManager.h"
