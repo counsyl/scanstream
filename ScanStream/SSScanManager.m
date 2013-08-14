@@ -87,7 +87,7 @@ NSString *const SSScanManagerErrorDomain = @"SSScanManagerErrorDomain";
     self.scanInProgress = NO;
     
     if (error) {
-        _callbackBlock(NO, error, nil);
+        _callbackBlock(NO, error, _scannedURLs);
         [NSApp dockTile].badgeLabel = @"✘";
     }
     else {

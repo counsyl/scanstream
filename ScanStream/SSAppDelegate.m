@@ -120,6 +120,7 @@ static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPattern
             if (!success) {
                 response.statusCode = 500;
                 [self _respondTo:response withJSON:@{ @"error": error.localizedDescription }];
+                [self _deleteScannedFiles:scannedURLs];
                 return;
             }
             
@@ -156,10 +157,7 @@ static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPattern
         
         // Delete the scanned file.
         [_temporaryCodes removeObjectForKey:code];
-        if (![[NSFileManager defaultManager] removeItemAtURL:fileURL
-                                                       error:&error]) {
-            SSLog(@"Error deleting scanned file: %@", error);
-        }
+        [self _deleteScannedFiles:@[ fileURL ]];
     }];
     
     [self restartServer:nil];
@@ -167,15 +165,8 @@ static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPattern
 
 - (void)applicationWillTerminate:(NSNotification *)notification
 {
-    NSError *error = nil;
-    
     // Clean up files that were never downloaded.
-    for (NSURL *fileURL in [_temporaryCodes objectEnumerator]) {
-        if (![[NSFileManager defaultManager] removeItemAtURL:fileURL
-                                                       error:&error]) {
-            SSLog(@"Error deleting scanned file: %@", error);
-        }
-    }
+    [self _deleteScannedFiles:[_temporaryCodes allValues]];
 }
 
 - (IBAction)restartServer:(id)sender
@@ -249,6 +240,18 @@ static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPattern
     if (requestHeaders) {
         [response setHeader:@"Access-Control-Allow-Headers"
                       value:requestHeaders];
+    }
+}
+
+- (void)_deleteScannedFiles:(NSArray *)fileURLs
+{
+    NSError *error = nil;
+    
+    for (NSURL *fileURL in fileURLs) {
+        if (![[NSFileManager defaultManager] removeItemAtURL:fileURL
+                                                       error:&error]) {
+            SSLog(@"Error deleting scanned file: %@", error);
+        }
     }
 }
 
