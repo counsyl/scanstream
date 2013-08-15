@@ -29,7 +29,7 @@ static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPattern
 {
     [[NSUserDefaults standardUserDefaults] registerDefaults:@{
          SSServerPortDefaultsKey : @8080,
-         SSAllowedHostPatternsDefaultsKey : @[ @"\\Alocalhost\\z" ]
+         SSAllowedHostPatternsDefaultsKey : @[ @{ @"pattern": @"\\Alocalhost\\z" } ]
      }];
 }
 
@@ -233,8 +233,11 @@ static NSString *const SSAllowedHostPatternsDefaultsKey = @"SSAllowedHostPattern
     [response setHeader:@"Allow" value:@"GET,OPTIONS"];
     
     NSString *host = [[NSURL URLWithString:[request header:@"Origin"]] host];
-    for (NSString *hostPattern in [[NSUserDefaults standardUserDefaults] arrayForKey:SSAllowedHostPatternsDefaultsKey]) {
-        if (host && [host rangeOfString:hostPattern
+    for (NSDictionary *hostPattern in [[NSUserDefaults standardUserDefaults] arrayForKey:SSAllowedHostPatternsDefaultsKey]) {
+        if (![hostPattern isKindOfClass:[NSDictionary class]]) continue;
+        NSString *pattern = [hostPattern objectForKey:@"pattern"];
+        if (!pattern) continue;
+        if (host && [host rangeOfString:pattern
                                 options:NSRegularExpressionSearch].location != NSNotFound) {
             [response setHeader:@"Access-Control-Allow-Origin"
                           value:[request header:@"Origin"]];
