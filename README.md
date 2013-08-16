@@ -1,6 +1,8 @@
 # ScanStream
 A native Mac app to interface between scanners and JSON clients.
 
+![ScanStream screenshot](https://f.cloud.github.com/assets/14237/978605/eb5356d0-06c2-11e3-81c4-0241a2c0d668.png)
+
 ## API
 
 ScanStream provides a HTTP+JSON interface on `localhost`. By default it runs on port 8080, but this can be changed as follows:
